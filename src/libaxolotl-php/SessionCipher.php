@@ -56,7 +56,14 @@ class SessionCipher
         $this->sessionBuilder = new SessionBuilder($sessionStore, $preKeyStore, $signedPreKeyStore,
                                              $identityKeyStore, $recepientId, $deviceId);
     }
-
+		
+		public function hasSenderChain()
+		{
+			$sessionRecord = $this->sessionStore->loadSession($this->recipientId, $this->deviceId);
+      $sessionState = $sessionRecord->getSessionState();
+      return $sessionState->hasSenderChain();
+		}
+		
     public function encrypt($paddedMessage)
     {
         /*

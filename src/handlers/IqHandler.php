@@ -254,33 +254,36 @@ class IqHandler implements Handler
 
         if (isset($this->parent->getNodeId()['cipherKeys']) && ($this->parent->getNodeId()['cipherKeys'] == $this->node->getAttribute('id'))) {
             $users = $this->node->getChild(0)->getChildren();
-            foreach ($users as $user) {
-                $jid = $user->getAttribute('jid');
-                $registrationId = deAdjustId($user->getChild('registration')->getData());
-                $identityKey = new  IdentityKey(new DjbECPublicKey($user->getChild('identity')->getData()));
-                $signedPreKeyId = deAdjustId($user->getChild('skey')->getChild('id')->getData());
-                $signedPreKeyPub = new DjbECPublicKey($user->getChild('skey')->getChild('value')->getData());
-                $signedPreKeySig = $user->getChild('skey')->getChild('signature')->getData();
-				$preKeyId = null;
-				$preKeyPublic = null;
-				if ($user->getChild('key'))
-				{
-					$preKeyId = deAdjustId($user->getChild('key')->getChild('id')->getData());
-					$preKeyPublic = new DjbECPublicKey($user->getChild('key')->getChild('value')->getData());
-				}
-                $preKeyBundle = new PreKeyBundle($registrationId, 1, $preKeyId, $preKeyPublic, $signedPreKeyId, $signedPreKeyPub, $signedPreKeySig, $identityKey);
-                $sessionBuilder = new SessionBuilder($this->parent->getAxolotlStore(), $this->parent->getAxolotlStore(), $this->parent->getAxolotlStore(), $this->parent->getAxolotlStore(), ExtractNumber($jid), 1);
-
-                $sessionBuilder->processPreKeyBundle($preKeyBundle);
-                if (isset($this->parent->getPendingNodes()[ExtractNumber($jid)])) {
-                    foreach ($this->parent->getPendingNodes()[ExtractNumber($jid)] as $pendingNode) {
-                        $msgHandler = new MessageHandler($this->parent, $pendingNode);
-                        $msgHandler->Process();
-                    }
-                    $this->parent->unsetPendingNode($jid);
-                }
-                $this->parent->sendPendingMessages($jid);
-            }
+            if ($users)
+            {
+	            foreach ($users as $user) {
+	                $jid = $user->getAttribute('jid');
+	                $registrationId = deAdjustId($user->getChild('registration')->getData());
+	                $identityKey = new  IdentityKey(new DjbECPublicKey($user->getChild('identity')->getData()));
+	                $signedPreKeyId = deAdjustId($user->getChild('skey')->getChild('id')->getData());
+	                $signedPreKeyPub = new DjbECPublicKey($user->getChild('skey')->getChild('value')->getData());
+	                $signedPreKeySig = $user->getChild('skey')->getChild('signature')->getData();
+	                $preKeyId = null;
+	                $preKeyPublic = null;
+	                if ($user->getChild('key'))
+	                {
+	                	$preKeyId = deAdjustId($user->getChild('key')->getChild('id')->getData());
+	                	$preKeyPublic = new DjbECPublicKey($user->getChild('key')->getChild('value')->getData());
+	                }
+	                $preKeyBundle = new PreKeyBundle($registrationId, 1, $preKeyId, $preKeyPublic, $signedPreKeyId, $signedPreKeyPub, $signedPreKeySig, $identityKey);
+	                $sessionBuilder = new SessionBuilder($this->parent->getAxolotlStore(), $this->parent->getAxolotlStore(), $this->parent->getAxolotlStore(), $this->parent->getAxolotlStore(), ExtractNumber($jid), 1);
+	
+	                $sessionBuilder->processPreKeyBundle($preKeyBundle);
+	                if (isset($this->parent->getPendingNodes()[ExtractNumber($jid)])) {
+	                    foreach ($this->parent->getPendingNodes()[ExtractNumber($jid)] as $pendingNode) {
+	                        $msgHandler = new MessageHandler($this->parent, $pendingNode);
+	                        $msgHandler->Process();
+	                    }
+	                    $this->parent->unsetPendingNode($jid);
+	                }
+	                $this->parent->sendPendingMessages($jid);
+	            }
+	          }
         }
     }
 
