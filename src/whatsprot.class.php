@@ -1274,32 +1274,35 @@ class WhatsProt
     {
         if (extension_loaded('curve25519') && extension_loaded('protobuf') && !$force_plain) {
             $to_num = ExtractNumber($to);
-            if (!(strpos($to, '-') !== false) && $this->getSessionCipher($to_num)->hasSenderChain()) {
+            if (!(strpos($to, '-') !== false)) {
                 if (!$this->axolotlStore->containsSession($to_num, 1)) {
                     $this->sendGetCipherKeysFromUser($to_num);
                 }
 
                 $sessionCipher = $this->getSessionCipher($to_num);
+                if ($sessionCipher->hasSenderChain()) {
 
-                if (in_array($to_num, $this->v2Jids) && !isset($this->v1Only[$to_num])) {
-                    $version = '2';
-                    $plaintext = padMessage($plaintext);
-                } else {
-                    $version = '1';
-                }
-                $cipherText = $sessionCipher->encrypt($plaintext);
-
-                if ($cipherText instanceof WhisperMessage) {
-                    $type = 'msg';
-                } else {
-                    $type = 'pkmsg';
-                }
-                $message = $cipherText->serialize();
-                $msgNode = new ProtocolNode('enc',
-              [
-                'v'     => $version,
-                'type'  => $type,
-              ], null, $message);
+                    if (in_array($to_num, $this->v2Jids) && !isset($this->v1Only[$to_num])) {
+                        $version = '2';
+                        $plaintext = padMessage($plaintext);
+                    } else {
+                        $version = '1';
+                    }
+                    $cipherText = $sessionCipher->encrypt($plaintext);
+    
+                    if ($cipherText instanceof WhisperMessage) {
+                        $type = 'msg';
+                    } else {
+                        $type = 'pkmsg';
+                    }
+                    $message = $cipherText->serialize();
+                    $msgNode = new ProtocolNode('enc',
+                    [
+                      'v'     => $version,
+                      'type'  => $type,
+                    ], null, $message);
+                } else
+                    $msgNode = new ProtocolNode('body', null, null, $plaintext);
             } else {
                 /* if (in_array($to, $this->v2Jids))
           {
